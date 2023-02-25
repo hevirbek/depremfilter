@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from math import sin, cos, sqrt, atan2, radians
 from datetime import datetime
+import sys
+import os
 
 # Approximate radius of earth in km
 R = 6373.0
@@ -93,3 +95,12 @@ def add_my_location(df: pd.DataFrame, lat: float, lon: float) -> pd.DataFrame:
     df = pd.concat([df, pd.DataFrame([[lat, lon, 0.0, 0.0, "My Location", "My Location"]], columns=["latitude", "longitude", "depth", "magnitude", "region", "feature"])], ignore_index=True)
     return df
 
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout

@@ -1,32 +1,47 @@
-from utils import get_earthquake_data, add_distance_column, filter_data, add_my_location
+from utils import get_earthquake_data, add_distance_column, filter_data, add_my_location, HiddenPrints
 import streamlit as st
-import geocoder
+import streamlit.components.v1 as components
+from streamlit_ws_localstorage import injectWebsocketCode, getOrCreateUID
+
+# Main call to the api, returns a communication object
+with HiddenPrints():
+    conn = injectWebsocketCode(hostPort='linode.liquidco.in', uid=getOrCreateUID())
 
 database = get_earthquake_data()
-
-lat, lon = None, None
 
 st.title("Deprem Filtreleme Uygulaması")
 
 min_mag = st.slider(label="Minimum Büyüklük", min_value=0.0, max_value=10.0, value=3.0, step=0.1)
 max_dist = st.slider(label="Maksimum Uzaklık", min_value=0, max_value=1670, value=200, step=10)
 
-loc_button = st.button(label="Konumu Al")
-if loc_button:
-    res = g = geocoder.ip('me')
+template = """
+<script type="text/javascript">
+    var lat, lon;
+    navigator.geolocation.getCurrentPosition(function(position) {
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
 
+        localStorage.setItem("coords", lat+","+lon);
+    });
+</script>
+"""
 
-    st.session_state['lat'] = res.latlng[0]
-    st.session_state['lon'] = res.latlng[1]
+remove_newlines = lambda s: s.replace("\n", "").replace("\r", "").strip().replace(" ", "").replace("\t", "")
 
-    st.text(f"Enlem: {res.latlng[0]}")
-    st.text(f"Boylam: {res.latlng[1]}")
+html = components.html(template, height=0, width=0)
 
-submit = st.button(label="Submit")
+submit = st.button(label="Filtrele")
 if submit:
-    if 'lat' not in st.session_state or 'lon' not in st.session_state:
-        st.error("Lütfen önce konumunuzu belirleyin!")
-        st.stop()
+    with st.spinner('İşleniyor...'):
+        if 'lat' not in st.session_state or 'lon' not in st.session_state:
+            with HiddenPrints():
+                coords = conn.getLocalStorageVal(key='coords')
+
+            lat, lon = coords.split(",")
+
+            st.session_state['lat'] = float(lat)
+            st.session_state['lon'] = float(lon)
+
     st.text(f"Enlem: {st.session_state['lat']}")
     st.text(f"Boylam: {st.session_state['lon']}")
 
