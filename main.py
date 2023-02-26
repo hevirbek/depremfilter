@@ -40,7 +40,11 @@ if submit:
         if 'lat' not in st.session_state or 'lon' not in st.session_state:
             with HiddenPrints():
                 coords = conn.getLocalStorageVal(key='coords')
-
+            
+            if not coords:
+                st.error("Konum bilgileri alınamadı. Lütfen konum bilgilerinize izin verin.")
+                st.stop()
+                
             lat, lon = coords.split(",")
 
             st.session_state['lat'] = float(lat)
