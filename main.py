@@ -6,7 +6,7 @@ from streamlit_ws_localstorage import injectWebsocketCode, getOrCreateUID
 st.set_page_config(page_title="Deprem Filtreleme Uygulaması", page_icon=":earth_americas:", layout="wide", initial_sidebar_state="expanded")
 
 with HiddenPrints():
-    conn = injectWebsocketCode(hostPort='linode.liquidco.in', uid=getOrCreateUID())
+    conn = injectWebsocketCode(hostPort='wsauthserver.supergroup.ai', uid=getOrCreateUID())
 
 database = get_earthquake_data()
 cities = get_cities(database)
